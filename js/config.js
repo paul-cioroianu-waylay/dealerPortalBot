@@ -25,7 +25,14 @@ const config = {
       title: "Alarm monitoring",
       icon: "precision_manufacturing",
       queries: [
-        "Show me the most recent alarms"
+        "Show me the most recent proactive alarms"
+      ]
+    },
+    {
+      title: "Work Orders",
+      icon: "flowsheet",
+      queries: [
+        "Show me the status of ongoing work orders"
       ]
     }
   ]
