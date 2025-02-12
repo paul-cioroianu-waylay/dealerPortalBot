@@ -18,7 +18,7 @@ const config = {
       title: "Asset maintenance",
       icon: "flowsheet",
       queries: [
-        "Which assets need maintenance"
+        "Which assets need maintenance", "What are the most recent fault codes"
       ]
     },
     {
