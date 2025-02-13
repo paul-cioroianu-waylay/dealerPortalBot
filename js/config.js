@@ -11,21 +11,21 @@ const config = {
       title: "Fleet status",
       icon: "notifications",
       queries: [
-       "What is the status of my fleet"
+       "What is the status of my fleet?"
       ]
     },
     {
       title: "Asset maintenance",
       icon: "flowsheet",
       queries: [
-        "Which assets need maintenance", "What are the most recent fault codes"
+        "Which assets need maintenance?", "What are the most recent fault codes?"
       ]
     },
     {
       title: "Alarm monitoring",
       icon: "precision_manufacturing",
       queries: [
-        "Show me the most recent proactive alarms"
+        "Show me the most recent proactive alarms", "Which proactive rule templates are available?"
       ]
     },
     {
