@@ -95,47 +95,42 @@ class Dashboard {
       }
 
     })
-    this.createAssetsPerTypePieChart(perType)
-    this.createAssetsPerAccountPieChart(perAccount)
-  }
 
-  createAssetsPerTypePieChart(perType) {
     let options = {
       chart: {
         type: 'pie',
         height: '100%',
-        width: '100%'
+        width: '100%',
       },
       title: {
-        text: 'Assets per type',
+        text: 'Pie Chart',
         align: 'center',
+        style: {
+          color: 'var(--color-fg-default)',
+        },
       },
       legend: { show: false },
-      series: Object.values(perType),
-      labels: Object.keys(perType),
     }
+
+    this.createAssetsPerTypePieChart(perType, options)
+    this.createAssetsPerAccountPieChart(perAccount, options)
+  }
+
+  createAssetsPerTypePieChart(perType, options) {
+    options.title.text = 'Assets per type'
+    options.series = Object.values(perType)
+    options.labels = Object.keys(perType)
     var chart = new ApexCharts(document.getElementById('leftPieChart'), options)
     chart.render()
   }
-  createAssetsPerAccountPieChart(perAccount) {
-    let options = {
-      chart: {
-        type: 'pie',
-        height: '100%',
-        width: '100%'
-      },
-      title: {
-        text: 'Assets per Account',
-        align: 'center',
-      },
-      legend: { show: false },
-      series: Object.values(perAccount),
-      labels: Object.keys(perAccount),
-    }
+
+  createAssetsPerAccountPieChart(perAccount, options) {
+    options.title.text = 'Assets per Account'
+    options.series = Object.values(perAccount)
+    options.labels = Object.keys(perAccount)
     var chart = new ApexCharts(document.getElementById('rightPieChart'), options)
     chart.render()
   }
-
 
 
 }
