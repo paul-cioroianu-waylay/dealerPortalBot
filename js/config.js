@@ -22,7 +22,7 @@ const config = {
       ]
     },
     {
-      title: "Alarm monitoring",
+      title: "Proactive alarm management",
       icon: "precision_manufacturing",
       queries: [
         "Show me the most recent proactive alarms", "Which proactive rule templates are available?"
