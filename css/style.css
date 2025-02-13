@@ -152,6 +152,7 @@ body {
   max-height: 100vh;
   height: 100%;
   padding-bottom: 150px;
+  border-top:1px solid var(--incoming-chat-border);
 }
 
 :where(.chat-container, textarea)::-webkit-scrollbar {
@@ -207,11 +208,11 @@ body {
 
 .chat .chat-content {
   display: flex;
-  max-width: 1200px;
   width: 100%;
   align-items: flex-start;
   justify-content: space-between;
   overflow: auto;
+  max-width: 100%;
 }
 
 span.material-symbols-rounded {
@@ -451,6 +452,7 @@ span.material-symbols-rounded {
 
 .sidebar.open {
   width: 305px;
+  min-width: 305px;
 }
 
 .sidebar-content {
@@ -726,7 +728,7 @@ span.material-symbols-rounded {
 }
 .container-wrapper{
   display: flex;
-  width: 100%;
+  width: calc(100% - 305px);
   height: 100%;
   flex-direction: column;
 
@@ -739,27 +741,33 @@ span.material-symbols-rounded {
 }
 .leftCanvas{
   width: 60%;
-  height: 100%;
+  height: 85%;
+  align-self: center;
 }
 .rightCanvas{
   width: 40%;
   height: 100%;
   display: flex;
+  justify-content: center;
 }
 .upperLeftCanvas{
   height: 50%;
   display:flex;
   justify-content: center;
-  align-items: center;
 }
 .lowerLeftCanvas {
   height: 50%;
   display: flex;
   flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
 }
 .resMap{
   width: 85%;
   height:85%;
   justify-self: center;
   align-self: center;
+}
+.upperLeftCanvas > table {
+  max-height: 100% !important;
 }
