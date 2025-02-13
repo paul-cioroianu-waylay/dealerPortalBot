@@ -649,12 +649,6 @@ if($.urlParam('introImage')){
   document.getElementById('introImage').src = "images/intro.jpeg"
 }
 
-function getGravatar(email) {
-  const cleanEmail = email.trim().toLowerCase();
-  const hash = md5(cleanEmail);
-  return `https://www.gravatar.com/avatar/${hash}`;
-}
-
 //MAIN
 $('#introFrame').fadeOut(4000, () => {
   if ($.urlParam('token')) {
@@ -662,10 +656,9 @@ $('#introFrame').fadeOut(4000, () => {
     login({ token: $.urlParam('token') }).then(response => {
       console.log("application loaded")
       loadDataFromLocalstorage();
-/*       client.me().then(me=>{
-        document.getElementById("avatar").src = getGravatar(me.email);
-        $("#avatar").fadeIn(FADE)
-      }) */
+      let banner = document.getElementById('bannerImage')
+      banner.src ='images/banner2.jpg';
+      $('.banner').show()
       if($.urlParam('cardData')) {
         client.resources.get($.urlParam('cardData')).then( cardData =>
           createCards(cardData.cards)
