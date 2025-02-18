@@ -11,8 +11,9 @@ const config = {
       title: "Fleet status",
       icon: "notifications",
       queries: [
-       "What is the status of my fleet?"
-      ]
+       "Update the status of my fleet"
+      ],
+      type: 'dashboard'
     },
     {
       title: "Asset maintenance",
@@ -35,6 +36,7 @@ const config = {
         "Show me the status of ongoing work orders"
       ]
     }
-  ]
+  ],
+  SELECTION_SUFFIX_PROMPT:" .Use the following resource ids "
 }
 
