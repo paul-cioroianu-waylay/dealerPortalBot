@@ -1,71 +1,66 @@
 class Dashboard {
   client = null
-  selectedResources = []
   map = null
-  assetsPerTypePieChart = null
-  assetsPerAccountPieChart = null
+  groupLowerLeftChart = null
+  groupLowerRightChart = null
+  individualLowerLeftChart = null
+  individualLowerRightChart = null
 
 
   setClient(client) {
     this.client = client
   }
 
-  getSelectedResources() {
-    return this.selectedResources
-  }
 
-  async drawOnCanvas() {
+  async drawGroupResourcesDashboard(opts = { onlyCharts: false }) {
     const canvasDiv = document.getElementById('canvas')
-    canvasDiv.style.transition = 'none'
-    canvasDiv.style.opacity = '0'
-
+    if (!opts.onlyCharts) {
+      canvasDiv.style.transition = 'none'
+      canvasDiv.style.opacity = '0'
+    }
     let response = await this.client.resources.search({ tags: 'DealerPortal' })
     let resources = response.values
-
-    // Recreate table and map
-    this.createResourceTable(resources)
-    this.createMap(resources)
-    this.createPieCharts(resources)
-
-    // Restore transition and fade-in smoothly after a small delay
-    setTimeout(() => {
-      canvasDiv.style.transition = 'opacity 0.5s ease-in-out'  // Restore transition
-      canvasDiv.style.opacity = '1'  // Smooth fade-in
-    }, 50) // Short delay to prevent flash effect
+    if (!opts.onlyCharts) {
+      // Recreate table and map
+      this.createResourceTable(resources)
+      this.createMap(resources)
+    }
+    this.createGroupCharts(resources)
+    if (!opts.onlyCharts) {
+      // Restore transition and fade-in smoothly after a small delay
+      setTimeout(() => {
+        canvasDiv.style.transition = 'opacity 0.5s ease-in-out'  // Restore transition
+        canvasDiv.style.opacity = '1'  // Smooth fade-in
+      }, 50) // Short delay to prevent flash effect
+    }
   }
 
   createResourceTable(resources) {
     const upperLeftCanvas = document.getElementById('upperLeftCanvas')
     upperLeftCanvas.className = 'upperLeftCanvas markdown-body'
     upperLeftCanvas.style.backgroundColor = 'inherit'
-
     // Remove existing table if it exists
     const existingTable = upperLeftCanvas.querySelector('table')
     if (existingTable) {
       upperLeftCanvas.removeChild(existingTable)
     }
-
+    let selectedCheckbox = null
     // Create table
     const table = document.createElement('table')
     table.style.borderCollapse = 'collapse'
-
     // Create header row
     const headerRow = document.createElement('tr')
     const headers = ['ID', 'Name', 'Product', 'Account', 'AI Health Score', 'Selected']
-
     headers.forEach(headerText => {
       const th = document.createElement('th')
       th.textContent = headerText
       headerRow.appendChild(th)
     })
-
     // Append header row to the table
     table.appendChild(headerRow)
-
     // Populate table rows with resource data
     resources.forEach(resource => {
       const row = document.createElement('tr')
-
       // Create and append each table cell
       const properties = ['id', 'name', 'resourceTypeId', 'Account', 'AI Health Score']
       properties.forEach(prop => {
@@ -73,7 +68,6 @@ class Dashboard {
         td.textContent = resource[prop] || 'N/A'
         row.appendChild(td)
       })
-
       // Create 'Selected' column with checkbox
       const checkboxTd = document.createElement('td')
       const checkbox = document.createElement('input')
@@ -81,31 +75,51 @@ class Dashboard {
       checkboxTd.style.textAlign = 'center'
       checkboxTd.style.verticalAlign = 'middle'
       checkbox.dataset.id = resource.id
-
       checkbox.addEventListener('change', (event) => {
-        this.updateSelectedResources(event.target.dataset.id, event.target.checked)
+        if (selectedCheckbox && selectedCheckbox !== checkbox) {
+          selectedCheckbox.checked = false
+        }
+        if (checkbox.checked) {
+          selectedCheckbox = checkbox
+          this.removeCharts(true)
+          this.drawSingleResourceDashboard(event.target.dataset.id)
+        } else {
+          selectedCheckbox = null
+          this.removeCharts(false)
+          this.drawGroupResourcesDashboard({ onlyCharts: true })
+        }
       })
-
       checkboxTd.appendChild(checkbox)
       row.appendChild(checkboxTd)
-
       // Append row to the table
       table.appendChild(row)
     })
-
     // Append the table to the upperLeftCanvas element
     upperLeftCanvas.appendChild(table)
   }
 
-  updateSelectedResources(id, isSelected) {
-    if (isSelected) {
-      if (!this.selectedResources.includes(id)) {
-        this.selectedResources.push(id)
+  removeCharts(removeGroupCharts) {
+    if (removeGroupCharts) {
+      if (this.groupLowerLeftChart) {
+        this.groupLowerLeftChart.destroy()
+        this.groupLowerLeftChart = null
+
+      }
+      if (this.groupLowerRightChart) {
+        this.groupLowerRightChart.destroy()
+        this.groupLowerRightChart = null
       }
     } else {
-      this.selectedResources = this.selectedResources.filter(resId => resId !== id)
+      if (this.individualLowerLeftChart) {
+        this.individualLowerLeftChart.destroy()
+        this.individualLowerLeftChart = null
+
+      }
+      if (this.individualLowerRightChart) {
+        this.individualLowerRightChart.destroy()
+        this.individualLowerRightChart = null
+      }
     }
-    console.log('Selected Resources:', this.selectedResources)
   }
 
   createMap(resources) {
@@ -142,7 +156,7 @@ class Dashboard {
     console.log('Map updated with new markers.')
   }
 
-  createPieCharts(resources) {
+  createGroupCharts(resources) {
     const perType = {}
     const perAccount = {}
     console.log('createPieCharts', resources)
@@ -176,49 +190,143 @@ class Dashboard {
       legend: { show: false },
     }
 
-    this.createAssetsPerTypePieChart(perType, options)
-    this.createAssetsPerAccountPieChart(perAccount, options)
+    this.createGroupLeftChart(perType, options)
+    this.createGroupRightChart(perAccount, options)
   }
 
-  createAssetsPerTypePieChart(perType, options) {
+  createGroupLeftChart(perType, options) {
     options.title.text = 'Assets per type'
     options.series = Object.values(perType)
     options.labels = Object.keys(perType)
-
     const chartElement = document.getElementById('leftPieChart')
-
-    if (this.assetsPerTypePieChart) {
+    if (this.groupLowerLeftChart) {
       //  If chart exists, update it instead of recreating
-      this.assetsPerTypePieChart.updateOptions({
+      this.groupLowerLeftChart.updateOptions({
         series: options.series,
         labels: options.labels,
       })
     } else {
       //  Create a new chart if it doesn't exist
-      this.assetsPerTypePieChart = new ApexCharts(chartElement, options)
-      this.assetsPerTypePieChart.render()
+      this.groupLowerLeftChart = new ApexCharts(chartElement, options)
+      this.groupLowerLeftChart.render()
     }
   }
 
-  createAssetsPerAccountPieChart(perAccount, options) {
+  createGroupRightChart(perAccount, options) {
     options.title.text = 'Assets per Account'
     options.series = Object.values(perAccount)
     options.labels = Object.keys(perAccount)
 
     let chartElement = document.getElementById('rightPieChart')
 
-    if (this.assetsPerAccountPieChart) {
+    if (this.groupLowerRightChart) {
       //  If chart exists, update it instead of recreating
-      this.assetsPerAccountPieChart.updateOptions({
+      this.groupLowerRightChart.updateOptions({
         series: options.series,
         labels: options.labels,
       })
     } else {
       //  Create a new chart if it doesn't exist
-      this.assetsPerAccountPieChart = new ApexCharts(chartElement, options)
-      this.assetsPerAccountPieChart.render()
+      this.groupLowerRightChart = new ApexCharts(chartElement, options)
+      this.groupLowerRightChart.render()
     }
   }
 
+
+  async drawSingleResourceDashboard(resource) {
+    //6hrs ago
+    const fuelResponse = await client.data.getMetricSeries(resource, 'fuel level'/*, { from: Date.now() - (6 * 60 * 60 * 1000) }*/)
+    const hoursResponse = await client.data.getMetricSeries(resource, 'device_hours', { from: Date.now() - (6 * 60 * 60 * 1000) })
+    this.createFuelBarChart(fuelResponse.series)
+    this.createRunningHoursLineChart(hoursResponse.series)
+  }
+
+  createFuelBarChart(fuelSeries) {
+    const options = {
+      title: {
+        text: 'Fuel Levels',
+      },
+      chart: {
+        type: 'bar',
+        height: '100%',
+        width: '150%',
+      },
+      colors: ['#ff8157'],
+      plotOptions: {
+        bar: {
+          horizontal: false,
+        },
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      series: [{
+        name: 'value',
+        data: fuelSeries.map(data => ({ x: new Date(data[0]), y: data[1] })),
+      }],
+      xaxis: {
+        type: 'datetime',
+        title: 'timestamp',
+      },
+      yaxis: {
+        labels: {
+          formatter: function(value) {
+            return value.toFixed(2)
+          },
+        },
+      },
+    }
+    if (this.individualLowerLeftChart) {
+      this.individualLowerLeftChart.updateOptions({ series: options.series })
+    } else {
+      const chartElement = document.getElementById('leftPieChart')
+      const chart = new ApexCharts(chartElement, options)
+      this.individualLowerLeftChart = chart
+      chart.render()
+    }
+  }
+
+  createRunningHoursLineChart(hoursSeries) {
+    const options = {
+      title: {
+        text: 'Running Hours',
+      },
+      chart: {
+        type: 'line',
+        height: '100%',
+        width: '150%',
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      series: [{
+        name: 'value',
+        data: hoursSeries.map(data => ({ x: new Date(data[0]), y: data[1] })),
+      }],
+      stroke: {
+        curve: 'straight',
+      },
+      xaxis: {
+        type: 'datetime',
+        title: 'timestamp',
+      },
+      yaxis: {
+        labels: {
+          formatter: function(value) {
+            return value.toFixed(2)
+          },
+        },
+      },
+      colors: ['#00E396'],
+    }
+    if (this.individualLowerRightChart) {
+      this.individualLowerRightChart.updateOptions({ series: options.series })
+    } else {
+      const chartElement = document.getElementById('rightPieChart')
+      const chart = new ApexCharts(chartElement, options)
+      this.individualLowerRightChart = chart
+      chart.render()
+    }
+  }
 
 }

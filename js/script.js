@@ -112,7 +112,7 @@ function createCards(cards) {
         e.stopPropagation()
         console.log(query)
         if('dashboard' === card.type){
-          dashboard.drawOnCanvas()
+          dashboard.drawGroupResourcesDashboard()
         }else {
           $('#chat-input').text(query)
           handleOutgoingChat(query)
@@ -204,7 +204,7 @@ async function login(ops) {
   })
 
   dashboard.setClient(client)
-  await dashboard.drawOnCanvas()
+  await dashboard.drawGroupResourcesDashboard()
 }
 
 const loadDataFromLocalstorage = () => {
@@ -435,11 +435,6 @@ const handleOutgoingChat = (text, delay = 500) => {
   // Clear the input field and reset its height
   chatInput.value = ''
   chatInput.style.height = `${initialInputHeight}px`
-
-  const selectedDashboardValues = dashboard.getSelectedResources()
-  if (selectedDashboardValues.length>0){
-    userText += config.SELECTION_SUFFIX_PROMPT + JSON.stringify(selectedDashboardValues)
-  }
 
   const html = `<div class='chat-content'>
                     <div class='chat-details'>

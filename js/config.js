@@ -36,7 +36,6 @@ const config = {
         "Show me the status of ongoing work orders"
       ]
     }
-  ],
-  SELECTION_SUFFIX_PROMPT:" .Use the following resource ids "
+  ]
 }
 
