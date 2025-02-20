@@ -5,6 +5,7 @@ class Dashboard {
   groupLowerRightChart = null
   individualLowerLeftChart = null
   individualLowerRightChart = null
+  resourceImage = null
 
 
   setClient(client) {
@@ -23,8 +24,9 @@ class Dashboard {
     if (!opts.onlyCharts) {
       // Recreate table and map
       this.createResourceTable(resources)
-      this.createMap(resources)
+      this.drawMap(resources)
     }
+    this.removeCharts({ removeIndividualCharts: true })
     this.createGroupCharts(resources)
     if (!opts.onlyCharts) {
       // Restore transition and fade-in smoothly after a small delay
@@ -81,12 +83,13 @@ class Dashboard {
         }
         if (checkbox.checked) {
           selectedCheckbox = checkbox
-          this.removeCharts(true)
+          this.removeCharts({ removeGroupCharts: true })
           this.drawSingleResourceDashboard(event.target.dataset.id)
         } else {
           selectedCheckbox = null
-          this.removeCharts(false)
+          this.removeCharts({ removeIndividualCharts: true })
           this.drawGroupResourcesDashboard({ onlyCharts: true })
+          this.drawMap(resources)
         }
       })
       checkboxTd.appendChild(checkbox)
@@ -98,8 +101,8 @@ class Dashboard {
     upperLeftCanvas.appendChild(table)
   }
 
-  removeCharts(removeGroupCharts) {
-    if (removeGroupCharts) {
+  removeCharts(opts = { removeGroupCharts: true, removeIndividualCharts: true }) {
+    if (opts.removeGroupCharts) {
       if (this.groupLowerLeftChart) {
         this.groupLowerLeftChart.destroy()
         this.groupLowerLeftChart = null
@@ -109,7 +112,7 @@ class Dashboard {
         this.groupLowerRightChart.destroy()
         this.groupLowerRightChart = null
       }
-    } else {
+    } else if (opts.removeIndividualCharts) {
       if (this.individualLowerLeftChart) {
         this.individualLowerLeftChart.destroy()
         this.individualLowerLeftChart = null
@@ -122,7 +125,12 @@ class Dashboard {
     }
   }
 
-  createMap(resources) {
+  drawMap(resources) {
+    if (this.resourceImage) {
+      this.resourceImage.remove()
+      this.resourceImage = null
+    }
+
     const resMapDiv = document.getElementById('resMap')
     if (!resMapDiv) {
       console.error('resMap not found.')
@@ -236,9 +244,11 @@ class Dashboard {
   async drawSingleResourceDashboard(resource) {
     //6hrs ago
     const fuelResponse = await client.data.getMetricSeries(resource, 'fuel level'/*, { from: Date.now() - (6 * 60 * 60 * 1000) }*/)
-    const hoursResponse = await client.data.getMetricSeries(resource, 'device_hours', { from: Date.now() - (6 * 60 * 60 * 1000) })
+    const hoursResponse = await client.data.getMetricSeries(resource, 'running hours', { from: Date.now() - (6 * 60 * 60 * 1000) })
+    const imageBlob = await this.fetchResourceImage(resource)
     this.createFuelBarChart(fuelResponse.series)
     this.createRunningHoursLineChart(hoursResponse.series)
+    this.drawResourceImage(imageBlob)
   }
 
   createFuelBarChart(fuelSeries) {
@@ -329,4 +339,34 @@ class Dashboard {
     }
   }
 
+  drawResourceImage(blob) {
+    if (this.map) {
+      this.map.remove()
+      this.map = null
+    }
+    const imgURL = URL.createObjectURL(blob) // Create Object URL
+
+    //let imgElement = document.getElementById('resourceImage') // Find existing image
+    if (!this.resourceImage) {
+      // If image doesn't exist, create a new one
+      const imgElement = document.createElement('img')
+      imgElement.id = 'resourceImage' // Set an ID for easy reference
+      imgElement.alt = 'Fetched Image'
+      imgElement.style.maxWidth = '100%'
+      document.getElementById('resMap').appendChild(imgElement)
+      this.resourceImage = imgElement
+    }
+    // Update the existing image source
+    this.resourceImage.src = imgURL
+  }
+
+  async fetchResourceImage(resource) {
+    const signGet = await client.storage.object.signGet('assets', resource + '.png')
+    console.log(signGet._links.get_object)
+    const response = await fetch(signGet._links.get_object.href, {
+      method: 'GET',
+
+    })
+    return response.blob()
+  }
 }
