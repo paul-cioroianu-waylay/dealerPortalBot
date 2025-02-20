@@ -35,6 +35,13 @@ const config = {
       queries: [
         "Show me the status of ongoing work orders"
       ]
+    },
+    {
+      title: "Spare Part Reservation",
+      icon: "flowsheet",
+      queries: [
+        "Create Spare Part Reservation", "Status of my part reservations"
+      ]
     }
   ]
 }
