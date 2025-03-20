@@ -352,8 +352,17 @@ class Dashboard {
       const imgElement = document.createElement('img')
       imgElement.id = 'resourceImage' // Set an ID for easy reference
       imgElement.alt = 'Fetched Image'
-      imgElement.style.maxWidth = '100%'
+      imgElement.style.maxWidth = '100%';
+      imgElement.style.maxHeight = '100%';
+      imgElement.style.objectFit = 'contain';
       document.getElementById('resMap').appendChild(imgElement)
+      // Ensure the container has styles for centering
+      const container = document.getElementById('resMap');
+      container.style.display = 'flex';
+      container.style.justifyContent = 'center';
+      container.style.alignItems = 'center';
+      container.style.overflow = 'hidden'; // Prevents overflow issues
+      
       this.resourceImage = imgElement
     }
     // Update the existing image source
